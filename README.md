@@ -1,62 +1,112 @@
 # React Task Manager
 
-Single-page task manager built with React: tasks with description or subtasks, progress tracking, filters, and `localStorage` persistence.
+A simple single-page task manager built with React.
+Supports subtasks, progress tracking, filtering, and localStorage persistence.
 
-## Features
+---
 
-- **Tasks** — title, description, or numbered subtasks (1., 2., …). If the description field starts with "1." and you press Enter, new subtasks are added; if you remove "1.", the text is treated as a plain description.
-- **Subtasks** — individual checkboxes, progress shown as a percentage circle next to the main task.
-- **Filters** — All / Active / Completed.
-- **Persistence** — state is saved to `localStorage`.
+## 🖼 Preview
 
-## Tech Stack
+```
+![Task-Manager](https://github.com/user-attachments/assets/78bed4eb-3204-479f-9842-742adf6221da)
 
-| Category | Technology |
-|----------|------------|
-| UI | React 19 |
-| Language | TypeScript 5.9 |
-| Build | Vite 7 |
-| Styles | Plain CSS (no modules or libraries) |
-| Lint | ESLint + typescript-eslint |
+```
 
-## Project Structure
+---
+
+## 🎥 Demo
+
+```
+https://youtu.be/CDzLarvAy-0
+```
+
+---
+
+## ✨ Features
+
+* Create tasks with titles and descriptions
+* Support for **numbered subtasks (1., 2., 3., …)**
+* Individual **checkbox for each subtask**
+* **Progress indicator** for completed subtasks
+* Task **filters**: All / Active / Completed
+* **LocalStorage persistence** (tasks are saved automatically)
+
+---
+
+## 🧰 Tech Stack
+
+| Category   | Technology                 |
+| ---------- | -------------------------- |
+| UI         | React 19                   |
+| Language   | TypeScript 5               |
+| Build Tool | Vite                       |
+| Styles     | Plain CSS                  |
+| Linting    | ESLint + typescript-eslint |
+
+---
+
+## 📁 Project Structure
 
 ```
 src/
-├── App.tsx              # Task state, filters, CRUD, localStorage
+├── App.tsx
 ├── main.tsx
-├── index.css            # Global styles + animated gradient background
+├── index.css
 ├── types/
-│   └── task.ts          # Task, Subtask
+│   └── task.ts
 └── components/
-    ├── TaskInput.tsx    # Title input + description/subtasks textarea
-    ├── TaskList.tsx     # Task list
-    └── TaskItem.tsx     # Single task: checkbox, text, progress, expand subtasks
+    ├── TaskInput.tsx
+    ├── TaskList.tsx
+    └── TaskItem.tsx
 ```
 
-State lives in `App`; subtasks and progress are computed in `TaskItem`.
+* **App.tsx** — main task state, filters, CRUD operations
+* **TaskInput** — create new tasks
+* **TaskList** — render task list
+* **TaskItem** — single task with progress and subtasks
 
-## Getting Started
+---
 
-```bash
-# Install dependencies
+## 🚀 Getting Started
+
+Install dependencies:
+
+```
 npm install
+```
 
-# Dev server (Vite)
+Run development server:
+
+```
 npm run dev
+```
 
-# Production build
+Build for production:
+
+```
 npm run build
+```
 
-# Preview build
+Preview production build:
+
+```
 npm run preview
 ```
 
-**Note:** Run commands from the `react-task-manager` folder (where this README and `package.json` live).
+**Note:** Run commands from the `react-task-manager` folder (where `package.json` is located).
 
-## Scripts
+---
 
-- `npm run dev` — Vite dev server with HMR
-- `npm run build` — `tsc -b` + `vite build`
-- `npm run lint` — ESLint
-- `npm run preview` — Local preview of the build output
+## 📌 Scripts
+
+* `npm run dev` — start Vite development server
+* `npm run build` — build project for production
+* `npm run preview` — preview production build
+* `npm run lint` — run ESLint
+
+---
+
+## 📄 License
+
+MIT
+
