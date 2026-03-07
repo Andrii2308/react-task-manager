@@ -15,24 +15,76 @@ function App() {
     localStorage.setItem("tasks", JSON.stringify(tasks));
   }, [tasks]);
 
-  const addTask = (text: string, description: string) => {
+  const addTask = (
+    text: string,
+    description: string,
+    subtaskTexts: string[]
+  ) => {
+    const baseId = Date.now();
+
+    const subtasks =
+      subtaskTexts.length > 0
+        ? subtaskTexts.map((subtaskText, index) => ({
+            id: baseId + index + 1,
+            text: subtaskText,
+            completed: false,
+          }))
+        : undefined;
+
     const newTask: Task = {
-      id: Date.now(),
+      id: baseId,
       text,
       description,
       completed: false,
+      subtasks,
     };
-  
+
     setTasks([...tasks, newTask]);
   };
 
   const toggleTask = (id: number) => {
     setTasks(
-      tasks.map((task) =>
-        task.id === id
-          ? { ...task, completed: !task.completed }
-          : task
-      )
+      tasks.map((task) => {
+        if (task.id !== id) return task;
+
+        const newCompleted = !task.completed;
+        const updatedSubtasks = task.subtasks
+          ? task.subtasks.map((subtask) => ({
+              ...subtask,
+              completed: newCompleted,
+            }))
+          : task.subtasks;
+
+        return {
+          ...task,
+          completed: newCompleted,
+          subtasks: updatedSubtasks,
+        };
+      })
+    );
+  };
+
+  const toggleSubtask = (taskId: number, subtaskId: number) => {
+    setTasks(
+      tasks.map((task) => {
+        if (task.id !== taskId || !task.subtasks) return task;
+
+        const updatedSubtasks = task.subtasks.map((subtask) =>
+          subtask.id === subtaskId
+            ? { ...subtask, completed: !subtask.completed }
+            : subtask
+        );
+
+        const allCompleted =
+          updatedSubtasks.length > 0 &&
+          updatedSubtasks.every((subtask) => subtask.completed);
+
+        return {
+          ...task,
+          subtasks: updatedSubtasks,
+          completed: allCompleted,
+        };
+      })
     );
   };
 
@@ -61,6 +113,7 @@ function App() {
       <TaskList
         tasks={filteredTasks}
         toggleTask={toggleTask}
+        toggleSubtask={toggleSubtask}
         deleteTask={deleteTask}
       />
     </div>

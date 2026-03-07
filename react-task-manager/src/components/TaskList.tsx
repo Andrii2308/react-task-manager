@@ -4,10 +4,11 @@ import TaskItem from "./TaskItem";
 interface Props {
   tasks: Task[];
   toggleTask: (id: number) => void;
+  toggleSubtask: (taskId: number, subtaskId: number) => void;
   deleteTask: (id: number) => void;
 }
 
-function TaskList({ tasks, toggleTask, deleteTask }: Props) {
+function TaskList({ tasks, toggleTask, toggleSubtask, deleteTask }: Props) {
   return (
     <ul>
       {tasks.map((task) => (
@@ -15,6 +16,7 @@ function TaskList({ tasks, toggleTask, deleteTask }: Props) {
           key={task.id}
           task={task}
           toggleTask={toggleTask}
+          toggleSubtask={toggleSubtask}
           deleteTask={deleteTask}
         />
       ))}
