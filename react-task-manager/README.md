@@ -1,73 +1,62 @@
-# React + TypeScript + Vite
+# React Task Manager
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Single-page task manager built with React: tasks with description or subtasks, progress tracking, filters, and `localStorage` persistence.
 
-Currently, two official plugins are available:
+## Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- **Tasks** — title, description, or numbered subtasks (1., 2., …). If the description field starts with "1." and you press Enter, new subtasks are added; if you remove "1.", the text is treated as a plain description.
+- **Subtasks** — individual checkboxes, progress shown as a percentage circle next to the main task.
+- **Filters** — All / Active / Completed.
+- **Persistence** — state is saved to `localStorage`.
 
-## React Compiler
+## Tech Stack
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+| Category | Technology |
+|----------|------------|
+| UI | React 19 |
+| Language | TypeScript 5.9 |
+| Build | Vite 7 |
+| Styles | Plain CSS (no modules or libraries) |
+| Lint | ESLint + typescript-eslint |
 
-## Expanding the ESLint configuration
+## Project Structure
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```
+src/
+├── App.tsx              # Task state, filters, CRUD, localStorage
+├── main.tsx
+├── index.css            # Global styles + animated gradient background
+├── types/
+│   └── task.ts          # Task, Subtask
+└── components/
+    ├── TaskInput.tsx    # Title input + description/subtasks textarea
+    ├── TaskList.tsx     # Task list
+    └── TaskItem.tsx     # Single task: checkbox, text, progress, expand subtasks
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+State lives in `App`; subtasks and progress are computed in `TaskItem`.
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+## Getting Started
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+# Install dependencies
+npm install
+
+# Dev server (Vite)
+npm run dev
+
+# Production build
+npm run build
+
+# Preview build
+npm run preview
 ```
+
+**Note:** Run commands from the `react-task-manager` folder (where this README and `package.json` live).
+
+## Scripts
+
+- `npm run dev` — Vite dev server with HMR
+- `npm run build` — `tsc -b` + `vite build`
+- `npm run lint` — ESLint
+- `npm run preview` — Local preview of the build output

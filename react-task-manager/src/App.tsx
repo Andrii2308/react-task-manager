@@ -99,6 +99,7 @@ function App() {
   });
 
   return (
+    <div className="app-wrap">
     <div className="container">
       <h1>Task Manager</h1>
   
@@ -116,6 +117,7 @@ function App() {
         toggleSubtask={toggleSubtask}
         deleteTask={deleteTask}
       />
+    </div>
     </div>
   );
 }

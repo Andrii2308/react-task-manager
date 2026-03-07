@@ -1,7 +1,40 @@
-body {
+/* --- Self-moving gradient background (soft pink & blue) --- */
+html, body {
   margin: 0;
+  min-height: 100%;
+  height: 100%;
+}
+
+body {
   font-family: Arial, sans-serif;
-  background: #f4f6f8;
+  background: linear-gradient(
+    -45deg,
+    #ae6cef 0%,
+    #687ff6 20%,
+    #c385ec 40%,
+    #4e7fe8 60%,
+    #ed78c6 80%,
+    #6b59bc 100%
+  );
+  background-size: 400% 400%;
+  animation: gradientDrift 12s ease infinite;
+}
+
+@keyframes gradientDrift {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+.app-wrap {
+  min-height: 100vh;
+  position: relative;
 }
 
 .container {
@@ -10,7 +43,7 @@ body {
   background: white;
   padding: 25px;
   border-radius: 10px;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
 }
 
 h1 {
@@ -26,6 +59,7 @@ input {
 button {
   padding: 10px 15px;
   cursor: pointer;
+ 
 }
 
 ul {
@@ -39,7 +73,7 @@ li {
   justify-content: space-between;
   margin-top: 10px;
   padding: 10px;
-  background: #f9f9f9;
+  background: #dafcff;
   border-radius: 5px;
 }
 
@@ -51,27 +85,34 @@ li {
 
 .task-item {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 10px;
 }
 
 .task-checkbox {
   width: 22px;
   height: 22px;
+  margin-top: 4px;
   cursor: pointer;
 }
 
 .task-text {
   flex: 1;
+  word-break: break-word;
 }
-.task-header {
+
+.task-body {
+  flex: 1;
+}
+
+.task-row {
   display: flex;
-  gap: 10px;
   align-items: center;
+  gap: 10px;
 }
 
 .task-description {
-  margin-top: 5px;
+  margin-top: 6px;
   font-size: 14px;
   color: gray;
 }
@@ -91,39 +132,6 @@ li {
   width: 100%;
   font-family: inherit;
   resize: vertical;
-}
-
-.task-item {
-  display: flex;
-  align-items: flex-start;
-  gap: 10px;
-}
-
-.task-checkbox {
-  width: 22px;
-  height: 22px;
-  margin-top: 4px;
-}
-
-.task-body {
-  flex: 1;
-}
-
-.task-row {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.task-text {
-  flex: 1;
-  word-break: break-word;
-}
-
-.task-description {
-  margin-top: 6px;
-  font-size: 14px;
-  color: gray;
 }
 
 .description-wrapper {
@@ -170,7 +178,6 @@ li {
 
 .subtask-text {
   font-size: 13px;
-  
 }
 
 .subtask-completed {
