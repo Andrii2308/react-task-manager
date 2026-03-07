@@ -1,3 +1,4 @@
+import { useState } from "react";
 import type { Task } from "../types/task";
 
 interface Props {
@@ -7,23 +8,44 @@ interface Props {
 }
 
 function TaskItem({ task, toggleTask, deleteTask }: Props) {
+  const [open, setOpen] = useState(false);
+
   return (
-    <li>
+    <li className="task-item">
+
       <input
         type="checkbox"
         checked={task.completed}
         onChange={() => toggleTask(task.id)}
+        className="task-checkbox"
       />
 
-      <span
-        style={{
-          textDecoration: task.completed ? "line-through" : "none",
-        }}
-      >
-        {task.text}
-      </span>
+      <div className="task-body">
 
-      <button onClick={() => deleteTask(task.id)}>Delete</button>
+        <div className="task-row">
+          <span
+            className="task-text"
+            style={{
+              textDecoration: task.completed ? "line-through" : "none",
+            }}
+          >
+            {task.text}
+          </span>
+
+          <button onClick={() => setOpen(!open)}>
+            {open ? "▲" : "▼"}
+          </button>
+
+          <button onClick={() => deleteTask(task.id)}>Delete</button>
+        </div>
+
+        {open && (
+          <p className="task-description">
+            {task.description}
+          </p>
+        )}
+
+      </div>
     </li>
   );
 }

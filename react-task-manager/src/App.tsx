@@ -1,18 +1,28 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import TaskInput from "./components/TaskInput";
 import TaskList from "./components/TaskList";
 import type { Task } from "./types/task";
 
 function App() {
-  const [tasks, setTasks] = useState<Task[]>([]);
+  const [tasks, setTasks] = useState<Task[]>(() => {
+    const savedTasks = localStorage.getItem("tasks");
+    return savedTasks ? JSON.parse(savedTasks) : [];
+  });
 
-  const addTask = (text: string) => {
+  const [filter, setFilter] = useState<"all" | "active" | "completed">("all");
+
+  useEffect(() => {
+    localStorage.setItem("tasks", JSON.stringify(tasks));
+  }, [tasks]);
+
+  const addTask = (text: string, description: string) => {
     const newTask: Task = {
       id: Date.now(),
-      text: text,
+      text,
+      description,
       completed: false,
     };
-
+  
     setTasks([...tasks, newTask]);
   };
 
@@ -30,14 +40,26 @@ function App() {
     setTasks(tasks.filter((task) => task.id !== id));
   };
 
+  const filteredTasks = tasks.filter((task) => {
+    if (filter === "active") return !task.completed;
+    if (filter === "completed") return task.completed;
+    return true;
+  });
+
   return (
-    <div>
+    <div className="container">
       <h1>Task Manager</h1>
-
+  
       <TaskInput addTask={addTask} />
-
+  
+      <div className="filters">
+        <button onClick={() => setFilter("all")}>All</button>
+        <button onClick={() => setFilter("active")}>Active</button>
+        <button onClick={() => setFilter("completed")}>Completed</button>
+      </div>
+  
       <TaskList
-        tasks={tasks}
+        tasks={filteredTasks}
         toggleTask={toggleTask}
         deleteTask={deleteTask}
       />
