@@ -16,7 +16,7 @@ function newTaskId(): number {
 }
 
 function taskToDoc(task: Task): Record<string, unknown> {
-  return {
+  const doc: Record<string, unknown> = {
     id: task.id,
     text: task.text,
     description: task.description,
@@ -25,6 +25,10 @@ function taskToDoc(task: Task): Record<string, unknown> {
     subtasks:
       task.subtasks && task.subtasks.length > 0 ? task.subtasks : [],
   }
+  if (task.scheduledAt != null) {
+    doc.scheduledAt = task.scheduledAt
+  }
+  return doc
 }
 
 function docToTask(data: Record<string, unknown>): Task {
@@ -44,12 +48,22 @@ function docToTask(data: Record<string, unknown>): Task {
     })
   }
 
+  const scheduledRaw = data.scheduledAt
+  const scheduledAt =
+    scheduledRaw != null && scheduledRaw !== ""
+      ? Number(scheduledRaw)
+      : undefined
+
   return {
     id: Number(data.id),
     text: String(data.text ?? ""),
     description: String(data.description ?? ""),
     completed: Boolean(data.completed),
     subtasks,
+    scheduledAt:
+      scheduledAt != null && !Number.isNaN(scheduledAt)
+        ? scheduledAt
+        : undefined,
   }
 }
 
@@ -102,7 +116,12 @@ export function useFirestoreTasks(uid: string | undefined) {
   )
 
   const addTask = useCallback(
-    async (text: string, description: string, subtaskTexts: string[]) => {
+    async (
+      text: string,
+      description: string,
+      subtaskTexts: string[],
+      scheduledAt?: number
+    ) => {
       if (!uid) return
 
       const baseId = newTaskId()
@@ -121,6 +140,7 @@ export function useFirestoreTasks(uid: string | undefined) {
         description,
         completed: false,
         subtasks,
+        ...(scheduledAt != null ? { scheduledAt } : {}),
       }
 
       await persist(newTask)

@@ -4,6 +4,17 @@ import TaskList from "./components/TaskList"
 import LoginPanel from "./components/LoginPanel"
 import { useAuth } from "./context/AuthContext"
 import { useFirestoreTasks } from "./hooks/useFirestoreTasks"
+import { useScheduledTaskNotifications } from "./hooks/useScheduledTaskNotifications"
+
+function isPlannedTask(task: {
+  completed: boolean
+  scheduledAt?: number
+}): boolean {
+  if (task.completed) return false
+  const at = task.scheduledAt
+  if (at == null) return false
+  return at > Date.now()
+}
 
 function App() {
   const { user, loading: authLoading, signOut } = useAuth()
@@ -17,7 +28,11 @@ function App() {
     deleteTask,
   } = useFirestoreTasks(user?.uid)
 
-  const [filter, setFilter] = useState<"all" | "active" | "completed">("all")
+  useScheduledTaskNotifications(tasks)
+
+  const [filter, setFilter] = useState<
+    "all" | "active" | "completed" | "planned"
+  >("all")
 
   if (authLoading) {
     return (
@@ -40,8 +55,10 @@ function App() {
   }
 
   const filteredTasks = tasks.filter((task) => {
-    if (filter === "active") return !task.completed
     if (filter === "completed") return task.completed
+    if (filter === "planned") return isPlannedTask(task)
+    if (filter === "active")
+      return !task.completed && !isPlannedTask(task)
     return true
   })
 
@@ -75,6 +92,9 @@ function App() {
           </button>
           <button type="button" onClick={() => setFilter("completed")}>
             Completed
+          </button>
+          <button type="button" onClick={() => setFilter("planned")}>
+            Planned
           </button>
         </div>
 

@@ -10,4 +10,6 @@ export interface Task {
   description: string;
   completed: boolean;
   subtasks?: Subtask[];
+  /** Unix ms — task is "planned" until this moment; then it appears as due + notification */
+  scheduledAt?: number;
 }

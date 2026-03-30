@@ -26,6 +26,19 @@ function TaskItem({ task, toggleTask, toggleSubtask, deleteTask }: Props) {
     (task.subtasks && task.subtasks.length > 0) ||
     !!task.description;
 
+  const planned =
+    !task.completed &&
+    task.scheduledAt != null &&
+    task.scheduledAt > Date.now();
+
+  const scheduleLabel =
+    task.scheduledAt != null
+      ? new Date(task.scheduledAt).toLocaleString(undefined, {
+          dateStyle: "medium",
+          timeStyle: "short",
+        })
+      : null;
+
   return (
     <li className="task-item">
       <input
@@ -50,6 +63,12 @@ function TaskItem({ task, toggleTask, toggleSubtask, deleteTask }: Props) {
             <div className="task-progress-circle">
               <span>{progress}%</span>
             </div>
+          )}
+
+          {planned && scheduleLabel && (
+            <span className="task-planned-badge" title="Planned task">
+              {scheduleLabel}
+            </span>
           )}
 
           {hasDetails && (
