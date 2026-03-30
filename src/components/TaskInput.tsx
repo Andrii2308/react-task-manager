@@ -1,7 +1,11 @@
 import { useState, type KeyboardEvent } from "react";
 
 interface Props {
-  addTask: (text: string, description: string, subtaskTexts: string[]) => void;
+  addTask: (
+    text: string,
+    description: string,
+    subtaskTexts: string[]
+  ) => void | Promise<void>;
 }
 
 function TaskInput({ addTask }: Props) {
@@ -35,7 +39,7 @@ function TaskInput({ addTask }: Props) {
     }
   };
 
-  const handleAdd = () => {
+  const handleAdd = async () => {
     if (!text.trim()) return;
 
     const rawLines = description
@@ -58,7 +62,7 @@ function TaskInput({ addTask }: Props) {
 
     const finalDescription = hasRealSubtasks ? description : description.trim() === "1." ? "" : description;
 
-    addTask(text, finalDescription, hasRealSubtasks ? subtaskTexts : []);
+    await addTask(text, finalDescription, hasRealSubtasks ? subtaskTexts : []);
     setText("");
     setDescription("");
   };

@@ -1,125 +1,91 @@
-import { useState, useEffect } from "react";
-import TaskInput from "./components/TaskInput";
-import TaskList from "./components/TaskList";
-import type { Task } from "./types/task";
+import { useState } from "react"
+import TaskInput from "./components/TaskInput"
+import TaskList from "./components/TaskList"
+import LoginPanel from "./components/LoginPanel"
+import { useAuth } from "./context/AuthContext"
+import { useFirestoreTasks } from "./hooks/useFirestoreTasks"
 
 function App() {
-  const [tasks, setTasks] = useState<Task[]>(() => {
-    const savedTasks = localStorage.getItem("tasks");
-    return savedTasks ? JSON.parse(savedTasks) : [];
-  });
+  const { user, loading: authLoading, signOut } = useAuth()
+  const {
+    tasks,
+    loading: tasksLoading,
+    error: tasksError,
+    addTask,
+    toggleTask,
+    toggleSubtask,
+    deleteTask,
+  } = useFirestoreTasks(user?.uid)
 
-  const [filter, setFilter] = useState<"all" | "active" | "completed">("all");
+  const [filter, setFilter] = useState<"all" | "active" | "completed">("all")
 
-  useEffect(() => {
-    localStorage.setItem("tasks", JSON.stringify(tasks));
-  }, [tasks]);
+  if (authLoading) {
+    return (
+      <div className="app-wrap">
+        <div className="container auth-loading">
+          <p>Loading…</p>
+        </div>
+      </div>
+    )
+  }
 
-  const addTask = (
-    text: string,
-    description: string,
-    subtaskTexts: string[]
-  ) => {
-    const baseId = Date.now();
-
-    const subtasks =
-      subtaskTexts.length > 0
-        ? subtaskTexts.map((subtaskText, index) => ({
-            id: baseId + index + 1,
-            text: subtaskText,
-            completed: false,
-          }))
-        : undefined;
-
-    const newTask: Task = {
-      id: baseId,
-      text,
-      description,
-      completed: false,
-      subtasks,
-    };
-
-    setTasks([...tasks, newTask]);
-  };
-
-  const toggleTask = (id: number) => {
-    setTasks(
-      tasks.map((task) => {
-        if (task.id !== id) return task;
-
-        const newCompleted = !task.completed;
-        const updatedSubtasks = task.subtasks
-          ? task.subtasks.map((subtask) => ({
-              ...subtask,
-              completed: newCompleted,
-            }))
-          : task.subtasks;
-
-        return {
-          ...task,
-          completed: newCompleted,
-          subtasks: updatedSubtasks,
-        };
-      })
-    );
-  };
-
-  const toggleSubtask = (taskId: number, subtaskId: number) => {
-    setTasks(
-      tasks.map((task) => {
-        if (task.id !== taskId || !task.subtasks) return task;
-
-        const updatedSubtasks = task.subtasks.map((subtask) =>
-          subtask.id === subtaskId
-            ? { ...subtask, completed: !subtask.completed }
-            : subtask
-        );
-
-        const allCompleted =
-          updatedSubtasks.length > 0 &&
-          updatedSubtasks.every((subtask) => subtask.completed);
-
-        return {
-          ...task,
-          subtasks: updatedSubtasks,
-          completed: allCompleted,
-        };
-      })
-    );
-  };
-
-  const deleteTask = (id: number) => {
-    setTasks(tasks.filter((task) => task.id !== id));
-  };
+  if (!user) {
+    return (
+      <div className="app-wrap">
+        <div className="container">
+          <LoginPanel />
+        </div>
+      </div>
+    )
+  }
 
   const filteredTasks = tasks.filter((task) => {
-    if (filter === "active") return !task.completed;
-    if (filter === "completed") return task.completed;
-    return true;
-  });
+    if (filter === "active") return !task.completed
+    if (filter === "completed") return task.completed
+    return true
+  })
 
   return (
     <div className="app-wrap">
-    <div className="container">
-      <h1>Task Manager</h1>
-  
-      <TaskInput addTask={addTask} />
-  
-      <div className="filters">
-        <button onClick={() => setFilter("all")}>All</button>
-        <button onClick={() => setFilter("active")}>Active</button>
-        <button onClick={() => setFilter("completed")}>Completed</button>
+      <div className="container">
+        <header className="app-header">
+          <h1>Task Manager</h1>
+          <div className="user-bar">
+            <span className="user-email" title={user.email ?? undefined}>
+              {user.email ?? user.displayName ?? "Signed in"}
+            </span>
+            <button type="button" className="sign-out-btn" onClick={() => signOut()}>
+              Sign out
+            </button>
+          </div>
+        </header>
+
+        {tasksError && <p className="firestore-error">Cloud sync: {tasksError}</p>}
+        {tasksLoading && <p className="tasks-loading">Syncing tasks…</p>}
+
+        <TaskInput addTask={addTask} />
+
+        <div className="filters">
+          <button type="button" onClick={() => setFilter("all")}>
+            All
+          </button>
+          <button type="button" onClick={() => setFilter("active")}>
+            Active
+          </button>
+          <button type="button" onClick={() => setFilter("completed")}>
+            Completed
+          </button>
+        </div>
+
+        <TaskList
+          tasks={filteredTasks}
+          toggleTask={toggleTask}
+          toggleSubtask={toggleSubtask}
+          deleteTask={deleteTask}
+        />
       </div>
-  
-      <TaskList
-        tasks={filteredTasks}
-        toggleTask={toggleTask}
-        toggleSubtask={toggleSubtask}
-        deleteTask={deleteTask}
-      />
     </div>
-    </div>
-  );
+  )
 }
 
-export default App;
+export default App

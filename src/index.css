@@ -200,3 +200,133 @@ li {
   font-size: 11px;
   color: #2e7d32;
 }
+
+.app-header {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.app-header h1 {
+  margin: 0;
+}
+
+.user-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.user-email {
+  font-size: 13px;
+  color: #555;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 220px;
+}
+
+.sign-out-btn {
+  padding: 8px 12px;
+  font-size: 13px;
+}
+
+.firestore-error {
+  color: #c62828;
+  font-size: 14px;
+  margin: 8px 0;
+}
+
+.tasks-loading {
+  font-size: 14px;
+  color: #666;
+  margin: 0 0 8px;
+}
+
+.auth-loading {
+  text-align: center;
+  padding: 40px 20px;
+}
+
+.auth-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.auth-title {
+  text-align: center;
+  margin: 0;
+}
+
+.auth-sub {
+  text-align: center;
+  margin: 0;
+  color: #666;
+  font-size: 14px;
+}
+
+.auth-google {
+  width: 100%;
+  padding: 12px;
+  font-size: 15px;
+  background: #fff;
+  border: 1px solid #dadce0;
+  border-radius: 8px;
+}
+
+.auth-google:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.auth-divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: #888;
+  font-size: 13px;
+}
+
+.auth-divider::before,
+.auth-divider::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: #e0e0e0;
+}
+
+.auth-label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 14px;
+  color: #333;
+}
+
+.auth-label input {
+  width: 100%;
+  box-sizing: border-box;
+  margin-right: 0;
+}
+
+.auth-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.auth-actions button {
+  flex: 1;
+  min-width: 120px;
+}
+
+.auth-error {
+  color: #c62828;
+  font-size: 14px;
+  margin: 0;
+}
