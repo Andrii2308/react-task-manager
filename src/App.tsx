@@ -47,17 +47,18 @@ function App() {
 
   return (
     <div className="app-wrap">
+      <div className="app-toolbar">
+        <button type="button" className="sign-out-btn" onClick={() => signOut()}>
+          Sign out
+        </button>
+      </div>
+
       <div className="container">
         <header className="app-header">
           <h1>Task Manager</h1>
-          <div className="user-bar">
-            <span className="user-email" title={user.email ?? undefined}>
-              {user.email ?? user.displayName ?? "Signed in"}
-            </span>
-            <button type="button" className="sign-out-btn" onClick={() => signOut()}>
-              Sign out
-            </button>
-          </div>
+          <p className="user-email user-email--header" title={user.email ?? undefined}>
+            {user.email ?? user.displayName ?? "Signed in"}
+          </p>
         </header>
 
         {tasksError && <p className="firestore-error">Cloud sync: {tasksError}</p>}
