@@ -1,4 +1,4 @@
-import { useState, type KeyboardEvent } from "react"
+import { useEffect, useState, type KeyboardEvent } from "react"
 import type { TaskRecurrence } from "../types/task"
 
 function toDatetimeLocalValue(d: Date) {
@@ -19,9 +19,17 @@ interface Props {
     subtaskTexts: string[],
     extras?: { scheduledAt?: number; recurrence?: TaskRecurrence }
   ) => void | Promise<void>
+  templatePrefillTick?: number
+  templatePrefill?: { title: string; subtasks: string[] } | null
+  onTemplatePrefillConsumed?: () => void
 }
 
-function TaskInput({ addTask }: Props) {
+function TaskInput({
+  addTask,
+  templatePrefillTick = 0,
+  templatePrefill = null,
+  onTemplatePrefillConsumed,
+}: Props) {
   const [text, setText] = useState("")
   const [description, setDescription] = useState("")
   const [scheduleOpen, setScheduleOpen] = useState(false)
@@ -29,6 +37,34 @@ function TaskInput({ addTask }: Props) {
   const [recurringOpen, setRecurringOpen] = useState(false)
   const [recurringWhen, setRecurringWhen] = useState(defaultScheduleInput)
   const [recurrence, setRecurrence] = useState<TaskRecurrence>("daily")
+  const [scheduleTimeError, setScheduleTimeError] = useState<string | null>(
+    null
+  )
+
+  useEffect(() => {
+    if (
+      templatePrefillTick === 0 ||
+      !templatePrefill ||
+      !onTemplatePrefillConsumed
+    ) {
+      return
+    }
+    setText(templatePrefill.title)
+    if (templatePrefill.subtasks.length > 0) {
+      setDescription(
+        templatePrefill.subtasks
+          .map((s, i) => `${i + 1}. ${s}`)
+          .join("\n")
+      )
+    } else {
+      setDescription("")
+    }
+    onTemplatePrefillConsumed()
+  }, [
+    templatePrefillTick,
+    templatePrefill,
+    onTemplatePrefillConsumed,
+  ])
 
   const handleDescriptionKeyDown = (
     e: KeyboardEvent<HTMLTextAreaElement>
@@ -97,12 +133,14 @@ function TaskInput({ addTask }: Props) {
 
   const openSchedule = () => {
     if (!text.trim()) return
+    setScheduleTimeError(null)
     setScheduleWhen(defaultScheduleInput())
     setScheduleOpen(true)
   }
 
   const openRecurring = () => {
     if (!text.trim()) return
+    setScheduleTimeError(null)
     setRecurringWhen(defaultScheduleInput())
     setRecurrence("daily")
     setRecurringOpen(true)
@@ -114,9 +152,10 @@ function TaskInput({ addTask }: Props) {
 
     const ts = new Date(scheduleWhen).getTime()
     if (Number.isNaN(ts) || ts <= Date.now()) {
-      window.alert("Pick a date and time in the future.")
+      setScheduleTimeError("Choose a date and time in the future.")
       return
     }
+    setScheduleTimeError(null)
 
     if ("Notification" in window && Notification.permission === "default") {
       await Notification.requestPermission()
@@ -127,6 +166,7 @@ function TaskInput({ addTask }: Props) {
     })
     setText("")
     setDescription("")
+    setScheduleTimeError(null)
     setScheduleOpen(false)
   }
 
@@ -136,9 +176,10 @@ function TaskInput({ addTask }: Props) {
 
     const ts = new Date(recurringWhen).getTime()
     if (Number.isNaN(ts) || ts <= Date.now()) {
-      window.alert("Pick a date and time in the future.")
+      setScheduleTimeError("Choose a date and time in the future.")
       return
     }
+    setScheduleTimeError(null)
 
     if ("Notification" in window && Notification.permission === "default") {
       await Notification.requestPermission()
@@ -150,20 +191,24 @@ function TaskInput({ addTask }: Props) {
     })
     setText("")
     setDescription("")
+    setScheduleTimeError(null)
     setRecurringOpen(false)
   }
 
   const recurrenceLabel =
     recurrence === "daily"
-      ? "Once a day"
+      ? "once a day"
       : recurrence === "weekly"
-        ? "Once a week"
-        : "Once a month"
+        ? "once a week"
+        : "once a month"
+
+  const showDetails = Boolean(text.trim())
 
   return (
     <div className="task-input-container">
-      <div className="task-main-row">
+      <div className="task-main-row task-title-row">
         <input
+          className="task-title-input"
           value={text}
           onChange={(e) => {
             const nextText = e.target.value
@@ -173,56 +218,61 @@ function TaskInput({ addTask }: Props) {
               setDescription("1. ")
             }
           }}
-          placeholder="Task..."
+          placeholder="Task title…"
         />
-
-        <div className="task-actions">
-          <button type="button" onClick={handleAdd}>
-            Add
-          </button>
-          <button
-            type="button"
-            className="btn-schedule"
-            onClick={openSchedule}
-            title="Choose when this task should remind you"
-          >
-            Add for later
-          </button>
-          <button
-            type="button"
-            className="btn-recurring"
-            onClick={openRecurring}
-            title="Repeating task with reminders"
-          >
-            Recurring
-          </button>
-        </div>
       </div>
 
-      {text && (
-        <div className="description-wrapper">
-          <textarea
-            className="description-input"
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            onKeyDown={handleDescriptionKeyDown}
-            placeholder="Write subtasks (1., 2., ...) or task description (delete 1.)"
-            rows={4}
-          />
-          {description === "1. " && (
-            <span className="description-hint">
-              Press Enter to add more subtasks, or delete &quot;1.&quot; to write
-              a description
-            </span>
-          )}
-        </div>
+      {showDetails && (
+        <>
+          <div className="description-wrapper">
+            <textarea
+              className="description-input"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              onKeyDown={handleDescriptionKeyDown}
+              placeholder="Subtasks (1., 2., …) or description"
+              rows={4}
+            />
+            {description === "1. " && (
+              <span className="description-hint">
+                Press Enter for another line; delete “1.” to write a plain description
+              </span>
+            )}
+          </div>
+
+          <p className="task-actions-hint">How to add this task:</p>
+          <div className="task-actions task-actions-stacked">
+            <button type="button" onClick={handleAdd}>
+              Add now
+            </button>
+            <button
+              type="button"
+              className="btn-schedule"
+              onClick={openSchedule}
+              title="Reminder at a chosen time"
+            >
+              Schedule (date &amp; time)
+            </button>
+            <button
+              type="button"
+              className="btn-recurring"
+              onClick={openRecurring}
+              title="Repeating reminder"
+            >
+              Recurring
+            </button>
+          </div>
+        </>
       )}
 
       {scheduleOpen && (
         <div
           className="schedule-modal-backdrop"
           role="presentation"
-          onClick={() => setScheduleOpen(false)}
+          onClick={() => {
+            setScheduleOpen(false)
+            setScheduleTimeError(null)
+          }}
         >
           <div
             className="schedule-modal"
@@ -234,8 +284,8 @@ function TaskInput({ addTask }: Props) {
               When should this task appear?
             </h2>
             <p className="schedule-modal-hint">
-              You’ll get a browser notification at this time (allow notifications
-              if asked).
+              You will get a browser notification at this time (allow notifications
+              if the browser asks).
             </p>
             <label className="schedule-modal-label">
               Date &amp; time
@@ -243,9 +293,17 @@ function TaskInput({ addTask }: Props) {
                 type="datetime-local"
                 value={scheduleWhen}
                 min={toDatetimeLocalValue(new Date())}
-                onChange={(e) => setScheduleWhen(e.target.value)}
+                onChange={(e) => {
+                  setScheduleWhen(e.target.value)
+                  setScheduleTimeError(null)
+                }}
               />
             </label>
+            {scheduleTimeError && (
+              <p className="schedule-modal-error" role="alert">
+                {scheduleTimeError}
+              </p>
+            )}
             <div className="schedule-modal-actions">
               <button type="button" onClick={() => setScheduleOpen(false)}>
                 Cancel
@@ -262,7 +320,10 @@ function TaskInput({ addTask }: Props) {
         <div
           className="schedule-modal-backdrop"
           role="presentation"
-          onClick={() => setRecurringOpen(false)}
+          onClick={() => {
+            setRecurringOpen(false)
+            setScheduleTimeError(null)
+          }}
         >
           <div
             className="schedule-modal"
@@ -274,9 +335,8 @@ function TaskInput({ addTask }: Props) {
               Recurring task
             </h2>
             <p className="schedule-modal-hint">
-              First reminder at the time below. After you complete the task, the
-              next date moves forward ({recurrenceLabel.toLowerCase()}). Allow
-              notifications if asked.
+              First reminder below. After you complete the task, the next date moves
+              forward ({recurrenceLabel}). Allow notifications if asked.
             </p>
 
             <fieldset className="recurrence-fieldset">
@@ -309,9 +369,17 @@ function TaskInput({ addTask }: Props) {
                 type="datetime-local"
                 value={recurringWhen}
                 min={toDatetimeLocalValue(new Date())}
-                onChange={(e) => setRecurringWhen(e.target.value)}
+                onChange={(e) => {
+                  setRecurringWhen(e.target.value)
+                  setScheduleTimeError(null)
+                }}
               />
             </label>
+            {scheduleTimeError && (
+              <p className="schedule-modal-error" role="alert">
+                {scheduleTimeError}
+              </p>
+            )}
             <div className="schedule-modal-actions">
               <button type="button" onClick={() => setRecurringOpen(false)}>
                 Cancel

@@ -1,10 +1,12 @@
-import { useState } from "react"
+import { useCallback, useState } from "react"
 import TaskInput from "./components/TaskInput"
 import TaskList from "./components/TaskList"
 import LoginPanel from "./components/LoginPanel"
+import TaskTemplatesPanel from "./components/TaskTemplatesPanel"
 import { useAuth } from "./context/AuthContext"
 import { useFirestoreTasks } from "./hooks/useFirestoreTasks"
 import { useScheduledTaskNotifications } from "./hooks/useScheduledTaskNotifications"
+import { useTemplateLibrary } from "./hooks/useTemplateLibrary"
 
 function isPlannedTask(task: {
   completed: boolean
@@ -30,9 +32,25 @@ function App() {
 
   useScheduledTaskNotifications(tasks)
 
+  const templateLibrary = useTemplateLibrary(user?.uid)
+
   const [filter, setFilter] = useState<
     "all" | "active" | "completed" | "planned"
   >("all")
+
+  const [templatesOpen, setTemplatesOpen] = useState(false)
+  const [templatePrefill, setTemplatePrefill] = useState<{
+    title: string
+    subtasks: string[]
+  } | null>(null)
+  const [templatePrefillTick, setTemplatePrefillTick] = useState(0)
+
+  const clearTemplatePrefill = useCallback(() => setTemplatePrefill(null), [])
+
+  const handleTemplatePick = (title: string, subtasks: string[]) => {
+    setTemplatePrefill({ title, subtasks })
+    setTemplatePrefillTick((n) => n + 1)
+  }
 
   if (authLoading) {
     return (
@@ -65,10 +83,35 @@ function App() {
   return (
     <div className="app-wrap">
       <div className="app-toolbar">
+        <button
+          type="button"
+          className="templates-toolbar-btn"
+          onClick={() => setTemplatesOpen(true)}
+        >
+          Templates
+        </button>
         <button type="button" className="sign-out-btn" onClick={() => signOut()}>
           Sign out
         </button>
       </div>
+
+      <TaskTemplatesPanel
+        open={templatesOpen}
+        onClose={() => setTemplatesOpen(false)}
+        onPick={handleTemplatePick}
+        sections={templateLibrary.sections}
+        trash={templateLibrary.trash}
+        ready={templateLibrary.ready}
+        addSection={templateLibrary.addSection}
+        renameSection={templateLibrary.renameSection}
+        deleteSection={templateLibrary.deleteSection}
+        addTask={templateLibrary.addTask}
+        updateTask={templateLibrary.updateTask}
+        deleteTask={templateLibrary.deleteTask}
+        restoreTrashEntry={templateLibrary.restoreTrashEntry}
+        purgeTrashEntry={templateLibrary.purgeTrashEntry}
+        resetToDefaults={templateLibrary.resetToDefaults}
+      />
 
       <div className="container">
         <header className="app-header">
@@ -81,7 +124,12 @@ function App() {
         {tasksError && <p className="firestore-error">Cloud sync: {tasksError}</p>}
         {tasksLoading && <p className="tasks-loading">Syncing tasks…</p>}
 
-        <TaskInput addTask={addTask} />
+        <TaskInput
+          addTask={addTask}
+          templatePrefillTick={templatePrefillTick}
+          templatePrefill={templatePrefill}
+          onTemplatePrefillConsumed={clearTemplatePrefill}
+        />
 
         <div className="filters">
           <button type="button" onClick={() => setFilter("all")}>

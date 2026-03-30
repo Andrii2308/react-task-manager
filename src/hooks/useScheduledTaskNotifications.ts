@@ -38,7 +38,7 @@ export function useScheduledTaskNotifications(tasks: Task[]) {
         }
 
         try {
-          new Notification("У вас нове завдання", {
+          new Notification("You have a new task", {
             body: task.text,
             icon: "/favicon.ico",
           })
