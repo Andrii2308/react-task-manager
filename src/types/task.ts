@@ -4,6 +4,8 @@ export interface Subtask {
   completed: boolean;
 }
 
+export type TaskRecurrence = "daily" | "weekly" | "monthly"
+
 export interface Task {
   id: number;
   text: string;
@@ -12,4 +14,6 @@ export interface Task {
   subtasks?: Subtask[];
   /** Unix ms — task is "planned" until this moment; then it appears as due + notification */
   scheduledAt?: number;
+  /** If set with scheduledAt: repeats after each completion */
+  recurrence?: TaskRecurrence;
 }

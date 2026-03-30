@@ -173,6 +173,52 @@ li {
   border: 1px solid #c4a8e8;
 }
 
+.btn-recurring {
+  background: #e3f2fd;
+  border: 1px solid #90caf9;
+}
+
+.task-recurrence-badge {
+  font-size: 11px;
+  color: #1565c0;
+  background: #e3f2fd;
+  padding: 4px 8px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+.recurrence-fieldset {
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 12px 14px;
+  margin: 0 0 16px;
+}
+
+.recurrence-legend {
+  font-size: 13px;
+  padding: 0 6px;
+  color: #444;
+}
+
+.recurrence-options {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.recurrence-option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.recurrence-option input {
+  width: auto;
+  margin: 0;
+}
+
 .task-planned-badge {
   font-size: 11px;
   color: #5e35b1;

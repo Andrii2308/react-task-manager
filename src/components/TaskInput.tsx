@@ -1,4 +1,5 @@
 import { useState, type KeyboardEvent } from "react"
+import type { TaskRecurrence } from "../types/task"
 
 function toDatetimeLocalValue(d: Date) {
   const pad = (n: number) => String(n).padStart(2, "0")
@@ -16,7 +17,7 @@ interface Props {
     text: string,
     description: string,
     subtaskTexts: string[],
-    scheduledAt?: number
+    extras?: { scheduledAt?: number; recurrence?: TaskRecurrence }
   ) => void | Promise<void>
 }
 
@@ -25,6 +26,9 @@ function TaskInput({ addTask }: Props) {
   const [description, setDescription] = useState("")
   const [scheduleOpen, setScheduleOpen] = useState(false)
   const [scheduleWhen, setScheduleWhen] = useState(defaultScheduleInput)
+  const [recurringOpen, setRecurringOpen] = useState(false)
+  const [recurringWhen, setRecurringWhen] = useState(defaultScheduleInput)
+  const [recurrence, setRecurrence] = useState<TaskRecurrence>("daily")
 
   const handleDescriptionKeyDown = (
     e: KeyboardEvent<HTMLTextAreaElement>
@@ -97,6 +101,13 @@ function TaskInput({ addTask }: Props) {
     setScheduleOpen(true)
   }
 
+  const openRecurring = () => {
+    if (!text.trim()) return
+    setRecurringWhen(defaultScheduleInput())
+    setRecurrence("daily")
+    setRecurringOpen(true)
+  }
+
   const handleScheduleSave = async () => {
     const payload = parseFormPayload()
     if (!payload) return
@@ -111,16 +122,43 @@ function TaskInput({ addTask }: Props) {
       await Notification.requestPermission()
     }
 
-    await addTask(
-      payload.text,
-      payload.finalDescription,
-      payload.subtaskTexts,
-      ts
-    )
+    await addTask(payload.text, payload.finalDescription, payload.subtaskTexts, {
+      scheduledAt: ts,
+    })
     setText("")
     setDescription("")
     setScheduleOpen(false)
   }
+
+  const handleRecurringSave = async () => {
+    const payload = parseFormPayload()
+    if (!payload) return
+
+    const ts = new Date(recurringWhen).getTime()
+    if (Number.isNaN(ts) || ts <= Date.now()) {
+      window.alert("Pick a date and time in the future.")
+      return
+    }
+
+    if ("Notification" in window && Notification.permission === "default") {
+      await Notification.requestPermission()
+    }
+
+    await addTask(payload.text, payload.finalDescription, payload.subtaskTexts, {
+      scheduledAt: ts,
+      recurrence,
+    })
+    setText("")
+    setDescription("")
+    setRecurringOpen(false)
+  }
+
+  const recurrenceLabel =
+    recurrence === "daily"
+      ? "Once a day"
+      : recurrence === "weekly"
+        ? "Once a week"
+        : "Once a month"
 
   return (
     <div className="task-input-container">
@@ -149,6 +187,14 @@ function TaskInput({ addTask }: Props) {
             title="Choose when this task should remind you"
           >
             Add for later
+          </button>
+          <button
+            type="button"
+            className="btn-recurring"
+            onClick={openRecurring}
+            title="Repeating task with reminders"
+          >
+            Recurring
           </button>
         </div>
       </div>
@@ -205,6 +251,72 @@ function TaskInput({ addTask }: Props) {
                 Cancel
               </button>
               <button type="button" onClick={handleScheduleSave}>
+                Save
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {recurringOpen && (
+        <div
+          className="schedule-modal-backdrop"
+          role="presentation"
+          onClick={() => setRecurringOpen(false)}
+        >
+          <div
+            className="schedule-modal"
+            role="dialog"
+            aria-labelledby="recurring-modal-title"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h2 id="recurring-modal-title" className="schedule-modal-title">
+              Recurring task
+            </h2>
+            <p className="schedule-modal-hint">
+              First reminder at the time below. After you complete the task, the
+              next date moves forward ({recurrenceLabel.toLowerCase()}). Allow
+              notifications if asked.
+            </p>
+
+            <fieldset className="recurrence-fieldset">
+              <legend className="recurrence-legend">Repeat</legend>
+              <div className="recurrence-options">
+                {(
+                  [
+                    ["daily", "Once a day"],
+                    ["weekly", "Once a week"],
+                    ["monthly", "Once a month"],
+                  ] as const
+                ).map(([value, label]) => (
+                  <label key={value} className="recurrence-option">
+                    <input
+                      type="radio"
+                      name="recurrence"
+                      value={value}
+                      checked={recurrence === value}
+                      onChange={() => setRecurrence(value)}
+                    />
+                    {label}
+                  </label>
+                ))}
+              </div>
+            </fieldset>
+
+            <label className="schedule-modal-label">
+              First reminder — date &amp; time
+              <input
+                type="datetime-local"
+                value={recurringWhen}
+                min={toDatetimeLocalValue(new Date())}
+                onChange={(e) => setRecurringWhen(e.target.value)}
+              />
+            </label>
+            <div className="schedule-modal-actions">
+              <button type="button" onClick={() => setRecurringOpen(false)}>
+                Cancel
+              </button>
+              <button type="button" onClick={handleRecurringSave}>
                 Save
               </button>
             </div>

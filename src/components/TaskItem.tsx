@@ -39,6 +39,15 @@ function TaskItem({ task, toggleTask, toggleSubtask, deleteTask }: Props) {
         })
       : null;
 
+  const recurrenceShort =
+    task.recurrence === "daily"
+      ? "Daily"
+      : task.recurrence === "weekly"
+        ? "Weekly"
+        : task.recurrence === "monthly"
+          ? "Monthly"
+          : null;
+
   return (
     <li className="task-item">
       <input
@@ -63,6 +72,12 @@ function TaskItem({ task, toggleTask, toggleSubtask, deleteTask }: Props) {
             <div className="task-progress-circle">
               <span>{progress}%</span>
             </div>
+          )}
+
+          {recurrenceShort && (
+            <span className="task-recurrence-badge" title="Repeating task">
+              {recurrenceShort}
+            </span>
           )}
 
           {planned && scheduleLabel && (

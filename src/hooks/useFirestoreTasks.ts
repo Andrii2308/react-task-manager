@@ -9,7 +9,8 @@ import {
   setDoc,
 } from "firebase/firestore"
 import { getFirestoreDb } from "../lib/firebase"
-import type { Task } from "../types/task"
+import { nextRecurrence } from "../lib/recurrence"
+import type { Task, TaskRecurrence } from "../types/task"
 
 function newTaskId(): number {
   return Date.now() * 1000 + Math.floor(Math.random() * 1000)
@@ -27,6 +28,9 @@ function taskToDoc(task: Task): Record<string, unknown> {
   }
   if (task.scheduledAt != null) {
     doc.scheduledAt = task.scheduledAt
+  }
+  if (task.recurrence != null) {
+    doc.recurrence = task.recurrence
   }
   return doc
 }
@@ -54,6 +58,16 @@ function docToTask(data: Record<string, unknown>): Task {
       ? Number(scheduledRaw)
       : undefined
 
+  const recurrenceRaw = data.recurrence
+  let recurrence: TaskRecurrence | undefined
+  if (
+    recurrenceRaw === "daily" ||
+    recurrenceRaw === "weekly" ||
+    recurrenceRaw === "monthly"
+  ) {
+    recurrence = recurrenceRaw
+  }
+
   return {
     id: Number(data.id),
     text: String(data.text ?? ""),
@@ -64,6 +78,7 @@ function docToTask(data: Record<string, unknown>): Task {
       scheduledAt != null && !Number.isNaN(scheduledAt)
         ? scheduledAt
         : undefined,
+    recurrence,
   }
 }
 
@@ -120,7 +135,7 @@ export function useFirestoreTasks(uid: string | undefined) {
       text: string,
       description: string,
       subtaskTexts: string[],
-      scheduledAt?: number
+      extras?: { scheduledAt?: number; recurrence?: TaskRecurrence }
     ) => {
       if (!uid) return
 
@@ -140,7 +155,8 @@ export function useFirestoreTasks(uid: string | undefined) {
         description,
         completed: false,
         subtasks,
-        ...(scheduledAt != null ? { scheduledAt } : {}),
+        ...(extras?.scheduledAt != null ? { scheduledAt: extras.scheduledAt } : {}),
+        ...(extras?.recurrence != null ? { recurrence: extras.recurrence } : {}),
       }
 
       await persist(newTask)
@@ -154,6 +170,26 @@ export function useFirestoreTasks(uid: string | undefined) {
       if (!task) return
 
       const newCompleted = !task.completed
+
+      if (
+        newCompleted &&
+        task.recurrence != null &&
+        task.scheduledAt != null
+      ) {
+        const nextAt = nextRecurrence(task.scheduledAt, task.recurrence)
+        const resetSubtasks = task.subtasks?.map((st) => ({
+          ...st,
+          completed: false,
+        }))
+        await persist({
+          ...task,
+          scheduledAt: nextAt,
+          completed: false,
+          subtasks: resetSubtasks,
+        })
+        return
+      }
+
       const updatedSubtasks = task.subtasks
         ? task.subtasks.map((subtask) => ({
             ...subtask,
@@ -184,6 +220,25 @@ export function useFirestoreTasks(uid: string | undefined) {
       const allCompleted =
         updatedSubtasks.length > 0 &&
         updatedSubtasks.every((subtask) => subtask.completed)
+
+      if (
+        allCompleted &&
+        task.recurrence != null &&
+        task.scheduledAt != null
+      ) {
+        const nextAt = nextRecurrence(task.scheduledAt, task.recurrence)
+        const resetSubtasks = updatedSubtasks.map((st) => ({
+          ...st,
+          completed: false,
+        }))
+        await persist({
+          ...task,
+          scheduledAt: nextAt,
+          completed: false,
+          subtasks: resetSubtasks,
+        })
+        return
+      }
 
       await persist({
         ...task,
