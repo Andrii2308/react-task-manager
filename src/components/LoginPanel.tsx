@@ -19,6 +19,10 @@ function LoginPanel() {
   const { signInWithGoogle, signInWithEmail, signUpWithEmail } = useAuth()
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
+  const [signupEmail, setSignupEmail] = useState("")
+  const [signupPassword, setSignupPassword] = useState("")
+  const [signupOpen, setSignupOpen] = useState(false)
+  const [signupError, setSignupError] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -41,17 +45,26 @@ function LoginPanel() {
     }
   }
 
+  const openSignup = () => {
+    setSignupError(null)
+    setSignupEmail(email)
+    setSignupPassword(password)
+    setSignupOpen(true)
+  }
+
   const handleSignUp = async () => {
-    setError(null)
-    if (!email.trim() || !password) {
-      setError("Enter email and password.")
+    setSignupError(null)
+    if (!signupEmail.trim() || !signupPassword) {
+      setSignupError("Enter email and password.")
       return
     }
     setBusy(true)
     try {
-      await signUpWithEmail(email, password)
+      await signUpWithEmail(signupEmail, signupPassword)
+      setSignupOpen(false)
     } catch (e) {
-      onError(e)
+      setSignupError(authMessage(e))
+      setBusy(false)
     }
   }
 
@@ -108,12 +121,65 @@ function LoginPanel() {
         <button type="button" onClick={handleSignIn} disabled={busy}>
           Sign in
         </button>
-        <button type="button" onClick={handleSignUp} disabled={busy}>
+        <button type="button" onClick={openSignup} disabled={busy}>
           Create account
         </button>
       </div>
 
       {error && <p className="auth-error">{error}</p>}
+
+      {signupOpen && (
+        <div
+          className="schedule-modal-backdrop"
+          role="presentation"
+          onClick={() => setSignupOpen(false)}
+        >
+          <div
+            className="schedule-modal auth-signup-modal"
+            role="dialog"
+            aria-labelledby="signup-modal-title"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h2 id="signup-modal-title" className="schedule-modal-title">
+              Create account
+            </h2>
+            <p className="schedule-modal-hint">
+              Enter your email and password to register.
+            </p>
+            <label className="schedule-modal-label">
+              Email
+              <input
+                type="email"
+                className="auth-modal-input"
+                autoComplete="email"
+                value={signupEmail}
+                onChange={(e) => setSignupEmail(e.target.value)}
+                disabled={busy}
+              />
+            </label>
+            <label className="schedule-modal-label">
+              Password
+              <input
+                type="password"
+                className="auth-modal-input"
+                autoComplete="new-password"
+                value={signupPassword}
+                onChange={(e) => setSignupPassword(e.target.value)}
+                disabled={busy}
+              />
+            </label>
+            {signupError && <p className="auth-error">{signupError}</p>}
+            <div className="schedule-modal-actions">
+              <button type="button" onClick={() => setSignupOpen(false)} disabled={busy}>
+                Cancel
+              </button>
+              <button type="button" onClick={handleSignUp} disabled={busy}>
+                Register
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

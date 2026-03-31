@@ -836,3 +836,13 @@ li {
   font-size: 14px;
   margin: 0;
 }
+
+.auth-signup-modal {
+  max-width: 460px;
+}
+
+.auth-modal-input {
+  width: 100%;
+  box-sizing: border-box;
+  margin-right: 0;
+}

@@ -231,7 +231,7 @@ function TaskInput({
               onChange={(e) => setDescription(e.target.value)}
               onKeyDown={handleDescriptionKeyDown}
               placeholder="Subtasks (1., 2., …) or description"
-              rows={4}
+              rows={8}
             />
             {description === "1. " && (
               <span className="description-hint">
